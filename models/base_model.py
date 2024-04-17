@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 '''Base Model file'''
 import uuid
 import models
@@ -30,7 +30,7 @@ class BaseModel:
         
     def __str__(self):
         '''Return String'''
-        return ("[{}] ({}) {}".format(self.__class__.__name__, self.id, self.__dict__))
+        return "[{}] ({}) {}".format(self.__class__.__name__, self.id, self.__dict__)
 
     def save(self):
         '''Save function'''
@@ -43,4 +43,4 @@ class BaseModel:
         a_dict['created_at'] = self.created_at.isoformat()
         a_dict['updated_at'] = self.updated_at.isoformat()
         a_dict['__class__'] = self.__class__.__name__
-        return (a_dict)
+        return a_dict
