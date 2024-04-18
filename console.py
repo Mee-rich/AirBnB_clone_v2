@@ -15,9 +15,7 @@ from models.review import Review
 class HBNBCommand(cmd.Cmd):
     """Class for the command interpreter"""
 
-
     prompt = "(hbnb) "
-
 
     def emptyline(self):
         """Doesn't do anything on ENTER
@@ -60,7 +58,7 @@ class HBNBCommand(cmd.Cmd):
             print("** class name missing **")
             return
         class_name = args[0]
-        if args[0] not in [cls.__name__ for cls in globals().values() if isinstance(cls,type)]:
+        if args[0] not in [cls.__name__ for cls in globals().values() if isinstance(cls, type)]:
             print("** class doesn't exist **")
             return
         if len(args) < 2:
@@ -100,7 +98,6 @@ class HBNBCommand(cmd.Cmd):
         """Prints string representation of all instances or 
         based on class name"""
         args = arg.split()
-        
 
         if not args:
             print([str(obj) for obj in storage.all().values()])
@@ -163,30 +160,9 @@ class HBNBCommand(cmd.Cmd):
                 obj_id = command.split('("', 1)[1].rstrip('")')
                 self.do_show(args[0]+' '+obj_id)
 
-                #f not obj_id:
-                 #  print("** instance id missing **")
-                  # return
-                #or key in storage.all():
-                 #  if obj_id == key.split('.')[1]:
-                       # self.do_show(class_name, obj_id)
-                #if '(' in command and ')' in command:
-                    #obj_id = command.split('(', 1)[1].rstrip(')')
-                   # self.do_show(class_name, obj_id)
-                #else:
-
             elif command.startswith('destroy'):
                 obj_id = command.split('("', 1)[1].rstrip('")')
                 self.do_destroy(args[0]+' '+obj_id)
-                #self.do_destroy(args[0]+' '+args[1].split('("')[1].strip('")'))
-                """if '(' in command and ')' in command:
-                    obj_id = command.split('(', 1)[1].rstrip(')')
-                    destroy_in = ["destroy", str(obj_id)]
-                    self.do_destroy(class_name, destroy_in)
-            elif command.startswith('update'):
-                obj_id = command.split('(', 1)[1].rstrip(')')
-            else:
-                print("** Unknown command **")
-"""
 
     @staticmethod
     def obj_count(arg):
