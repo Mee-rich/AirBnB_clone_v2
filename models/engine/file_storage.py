@@ -72,3 +72,6 @@ class FileStorage():
             self.save()
         else:
             print("** no instance found **")
+
+    def delete(self, obj=None):
+
