@@ -3,28 +3,55 @@
 
 import json
 import os
-from models.user import User
-from models.place import Place
-from models.city import City
-from models.state import State
-from models.review import Review
-from models.amenity import Amenity
-from models.base_model import BaseModel
-
+from importlib import import_module
 
 class FileStorage():
     """File storage module"""
+    
+    """Class for storing and retrieving data
+    Class Methods:
+        all: Returns the object (dictionary object)
+        new: updates the object id
+        save: Converts Python objects into JSON strings
+        reload: Converts JSON strings inton Python objects
+
+    Class Attributs:
+        __file_path (str): The name of the file, objects are saved to
+        __objects (dict): A dictionary of instantiated objects
+        class_dict (dict): A dictionary of all the classes
+    """
 
     __file_path = "file.json"
     __objects = {}
 
-    def all(self):
-        """returns all object"""
-        return FileStorage.__objects
+    def __init__(self):
+        """Initializes a FileStorage instance"""
+        self.model_classes = {
+                'BaseModel': import_module('models.base_model').BaseModel,
+                'User': import_module('models.user').User,
+                'State': import_module('models.state').State,
+                'City': import_module('models.city').City,
+                'Amenity': import_module('models.amenity').Amenity,
+                'Place': import_module('models.place').Place,
+                'Review': import_module('models.review').Review
+            }
+
+    def all(self, cls=None):
+        """returns all objects or ojects of a specified class"""
+        if cls is None:
+            return self.__objects
+        else:
+            filtered_dict = {}
+            for key, value in self.__objects.items():
+                if type(value) is cls:
+                    filtered_dict[key] = value
+            return filtered_dict
 
     def new(self, obj):
-        """sets a new object"""
-        FileStorage.__objects["{}.{}".format(type(obj).__name__, obj.id)] = obj
+        """Adds a new object to storage dictionary"""
+        self.__objects.update( 
+                {obj.to_dict()['__class__'] + '.' + obj.id: obj}
+        )
 
     def save(self):
         """saves a new obj"""
