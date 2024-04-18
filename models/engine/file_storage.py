@@ -36,7 +36,7 @@ class FileStorage():
             content[key] = value.to_dict()
 
         with open(file, 'w', encoding="utf-8") as f:
-            return f.write(json.dumps(content))
+            f.write(json.dumps(content))
 
     def reload(self):
         """reloads from a json file"""
@@ -58,7 +58,7 @@ class FileStorage():
     
     def update(self, key, attr, value):
         """updates an instance"""
-        if key in FileStorage.__ojjects:
+        if key in FileStorage.__objects:
             instance = FileStorage.__objects[key]
             setattr(instance, attr, value)
             instance.save()
