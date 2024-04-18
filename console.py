@@ -27,14 +27,40 @@ class HBNBCommand(cmd.Cmd):
         if not args:
             print("** class name missing **")
             return
+
         class_name = args[0]
         if class_name not in [cls.__name__ for cls in globals().values()
                               if isinstance(cls, type)]:
             print("** class doesn't exist **")
             return
-        new_instance = globals()[class_name]()
+
+        params = {}
+        for param in args[1:]:
+            if  '=' in param:
+                key, value = param.split('=')
+                # Remove quotes and replace underscores with spaces for strings
+                if value.startswith('"') and value.endswith('"'):
+                    value = value[1:-1].replace('_', ' ')
+                # Convert to float if contains a dot, otherwise integer
+            elif '.' in value:
+                try:
+                    value = float(value)
+                except ValueError:
+                    print(f"Skipping invalid parameter: {param}")
+                    continue
+            else:
+                try:
+                    value = int(value)
+                except ValueError:
+                    print(f"Skipping invalid parameter: {param}")
+                    continue
+            params[key] = value
+        else:
+            print(f"Skipping invalid parameter: {param}")
+
+        new_instance = globals()[class_name](**params)
         new_instance.save()
-        print(new_instance.id)
+        print(new_instance)
 
     def do_show(self, arg):
         """Prints the string representation of an instance
