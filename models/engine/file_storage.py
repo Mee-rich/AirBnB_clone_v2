@@ -64,14 +64,10 @@ class FileStorage():
             instance.save()
         else:
             print("** no instance found **")
-
-    def delete(self, key):
-        """deletes an instance"""
-        if key in FileStorage.__objects:
-            del FileStorage.__objects[key]
-            self.save()
-        else:
-            print("** no instance found **")
-
+            
     def delete(self, obj=None):
+        """Deletes an object from __objects"""
+        if obj is not None:
+            key = "{}.{}".format(type(obj).__name__, obj.id)
+            del FileStorage.__objects[key]
 
