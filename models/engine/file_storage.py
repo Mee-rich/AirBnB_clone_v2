@@ -42,20 +42,20 @@ class FileStorage():
         """reloads from a json file"""
 
         file = FileStorage.__file_path
-        
+
         try:
             if os.path.isfile(file):
                 with open(file, 'r', encoding="utf-8") as f:
                     content = f.read()
                     formattedContent = json.loads(content)
-                
+
                     for value in formattedContent.values():
                         class_name = value["__class__"]
                         self.new(eval(class_name)(**value))
 
         except FileNotFoundError:
             pass
-    
+
     def update(self, key, attr, value):
         """updates an instance"""
         if key in FileStorage.__objects:
