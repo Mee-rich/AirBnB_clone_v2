@@ -42,8 +42,40 @@ class HBNBCommand(cmd.Cmd):
 
     def precmd(self, line):
         """Changes command line for advance command syntax
-        
+            
+            Usage: <class name>.<command>([<id> [<*args> or <**kwargs>]])
+            (Brackets denote optional fields in usage example.)
         """
+        try:
+            # Split the line into parts based on '.', '(' and ')'
+            parts = line.split('.')
+            class_name, rest = parts[0], parts[1]
+
+            command_parts = rest.split('(')
+            command_name, args_str = command_parts[0], command_parts[1].strip(')')
+
+            # Parse arguments
+            if ',' in args_str:
+                args_list = args_str.split(',')
+                obj_id = args_list[0].strip().strip('\"') # Extract ID
+                args = ','.join(args_list[1:]) # Extract other arguments
+            else:
+                obj_id = args_str.strip().strip('\"')
+                args = ''
+
+            # Format the modified line
+            modified_line = f"{command_name} {class_name} {obj_id} {args}"
+            return modified_line
+        
+        except Exception as e:
+            # Handle exceptions (e.g., SyntaxError, IndexError) if necessary
+            print(f"Error: {e}")
+            return line
+
+    def postcmd(self, stop, line):
+        if not sys.__stdin__.isatty():
+            print('(hbnb) ', end='')
+        return stop
 
     def emptyline(self):
         """Doesn't do anything on ENTER

@@ -67,6 +67,10 @@ class FileStorage():
 
     def reload(self):
         """reloads from a json file"""
+        def is_valid_class(class_name):
+            """Check if the class name is valid."""
+            # Check if the class name exists in the global namespace
+            return class_name in globals() and isinstance(globals()[class_name], type)
 
         file = FileStorage.__file_path
 
@@ -74,14 +78,17 @@ class FileStorage():
             if os.path.isfile(file):
                 with open(file, 'r', encoding="utf-8") as f:
                     content = f.read()
-                    formattedContent = json.loads(content)
+                    formatted_content = json.loads(content)
 
-                    for value in formattedContent.values():
-                        class_name = value["__class__"]
-                        self.new(eval(class_name)(**value))
-
-        except FileNotFoundError:
-            pass
+                    for value in formatted_content.values():
+                        class_name = value.get("__class__")
+                        if class_name and is_valid_class(class_name):
+                            self.new(obj)
+                        else:
+                            # Log or handle invalid class names
+                            pass
+        except FileNotFoundError as e:
+            print(f"Error loading data from file: {e}")
 
     def update(self, key, attr, value):
         """updates an instance"""
