@@ -1,7 +1,81 @@
-class HBNBCommand(cmd.Cmd):
-    """Class for the command interpreter"""
+#!/usr/bin/python3
+""" Console Module """
+import cmd
+import sys
+import re
+import os
+from datetime import datetime
+import uuid
+from models.base_model import BaseModel
+from models import storage
+from models.user import User
+from models.place import Place
+from models.state import State
+from models.city import City
+from models.amenity import Amenity
+from models.review import Review
 
-    prompt = "(hbnb) "
+
+class HBNBCommand(cmd.Cmd):
+    """Functionality of the HBNB Console defined"""
+    
+    # Determines prompt for interactive/non-interactive modes
+    prompt = "(hbnb) " if sys.__stdin__.isatty() else ''
+
+    classes = {
+            'BaseModel': BaseModel, 'User': User, 'Place': Place,
+            'State': State, 'City': City, 'Amenity': Amenity,
+            'Review': Review
+            }
+
+    dotcmds = ['all', 'count', 'show', 'destroy', 'update']
+    types = {
+            'number_rooms': int, 'number_bathrooms': int,
+            'max_guest': int, 'price_by_night': int,
+            'latitude': float, 'longitude': float
+            }
+
+    def preloop(self):
+        """If isatty is false"""
+        if not sys.__stdin__.isatty():
+            print('(hbnb)')
+
+    def precmd(self, line):
+        """Changes command line for advance command syntax
+            
+            Usage: <class name>.<command>([<id> [<*args> or <**kwargs>]])
+            (Brackets denote optional fields in usage example.)
+        """
+        try:
+            # Split the line into parts based on '.', '(' and ')'
+            parts = line.split('.')
+            class_name, rest = parts[0], parts[1]
+
+            command_parts = rest.split('(')
+            command_name, args_str = command_parts[0], command_parts[1].strip(')')
+
+            # Parse arguments
+            if ',' in args_str:
+                args_list = args_str.split(',')
+                obj_id = args_list[0].strip().strip('\"') # Extract ID
+                args = ','.join(args_list[1:]) # Extract other arguments
+            else:
+                obj_id = args_str.strip().strip('\"')
+                args = ''
+
+            # Format the modified line
+            modified_line = f"{command_name} {class_name} {obj_id} {args}"
+            return modified_line
+        
+        except Exception as e:
+            # Handle exceptions (e.g., SyntaxError, IndexError) if necessary
+            print(f"Error: {e}")
+            return line
+
+    def postcmd(self, stop, line):
+        if not sys.__stdin__.isatty():
+            print('(hbnb) ', end='')
+        return stop
 
     def emptyline(self):
         """Doesn't do anything on ENTER
@@ -27,14 +101,40 @@ class HBNBCommand(cmd.Cmd):
         if not args:
             print("** class name missing **")
             return
+
         class_name = args[0]
         if class_name not in [cls.__name__ for cls in globals().values()
                               if isinstance(cls, type)]:
             print("** class doesn't exist **")
             return
-        new_instance = globals()[class_name]()
+
+        params = {}
+        for param in args[1:]:
+            if  '=' in param:
+                key, value = param.split('=')
+                # Remove quotes and replace underscores with spaces for strings
+                if value.startswith('"') and value.endswith('"'):
+                    value = value[1:-1].replace('_', ' ')
+                # Convert to float if contains a dot, otherwise integer
+            elif '.' in value:
+                try:
+                    value = float(value)
+                except ValueError:
+                    print(f"Skipping invalid parameter: {param}")
+                    continue
+            else:
+                try:
+                    value = int(value)
+                except ValueError:
+                    print(f"Skipping invalid parameter: {param}")
+                    continue
+            params[key] = value
+        else:
+            print(f"Skipping invalid parameter: {param}")
+
+        new_instance = globals()[class_name](**params)
         new_instance.save()
-        print(new_instance.id)
+        print(new_instance)
 
     def do_show(self, arg):
         """Prints the string representation of an instance

@@ -34,7 +34,7 @@ class DBStorage:
         env = os.getenv('HBNB_ENV')
 
         DATABASE_URL = "mysql+mysqldb://{}:{}@{}:3306/{}".format(
-            user, pword, host, db_nam
+            user, pword, host, db_name
         )
         self.__engine = create_engine(
             DATABASE_URL,

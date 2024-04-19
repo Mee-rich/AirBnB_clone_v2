@@ -1,10 +1,12 @@
 #!/usr/bin/python3
 """This is the base model class for AirBnB"""
+
 from sqlalchemy.ext.declarative import declarative_base
 import uuid
 import models
 from datetime import datetime
 from sqlalchemy import Column, Integer, String, DateTime
+from models import storage_type
 
 
 Base = declarative_base()
@@ -12,8 +14,14 @@ Base = declarative_base()
 
 class BaseModel:
     """This class will defines all common attributes/methods
-    for other classes
+    for other classes (Parent Class)
+
+    Attributes:
+        id (sqlalchemy String): The BaseModel id.
+        created_at (sqlalchemy Datetime): The datetime at creation.
+        updated_at (sqlalchemy Datetime): The datetime of last update.
     """
+
     id = Column(String(60), unique=True, nullable=False, primary_key=True)
     created_at = Column(DateTime, nullable=False, default=(datetime.utcnow()))
     updated_at = Column(DateTime, nullable=False, default=(datetime.utcnow()))
@@ -34,12 +42,13 @@ class BaseModel:
                     value = datetime.strptime(value, "%Y-%m-%dT%H:%M:%S.%f")
                 if key != "__class__":
                     setattr(self, key, value)
-            if "id" not in kwargs:
-                self.id = str(uuid.uuid4())
-            if "created_at" not in kwargs:
-                self.created_at = datetime.now()
-            if "updated_at" not in kwargs:
-                self.updated_at = datetime.now()
+            if storage_type == 'db':
+                if "id" not in kwargs:
+                    self.id = str(uuid.uuid4())
+                if "created_at" not in kwargs:
+                    self.created_at = datetime.now()
+                if "updated_at" not in kwargs:
+                    self.updated_at = datetime.now()
         else:
             self.id = str(uuid.uuid4())
             self.created_at = self.updated_at = datetime.now()
@@ -60,9 +69,10 @@ class BaseModel:
     def save(self):
         """updates the public instance attribute updated_at to current
         """
+        from models import storage
         self.updated_at = datetime.now()
-        models.storage.new(self)
-        models.storage.save()
+        storage.new(self)
+        storage.save()
 
     def to_dict(self):
         """creates dictionary of the class  and returns
@@ -80,4 +90,5 @@ class BaseModel:
     def delete(self):
         """ delete object
         """
-        models.storage.delete(self)
+        from models import storage
+        storage.delete(self)
