@@ -82,8 +82,9 @@ class BaseModel:
         Return:
             returns a dictionary of all the key values in __dict__
         """
-        my_dict = self.__dict__.copy()
-        my_dict["__class__"] = (type(self).__name__)
+        my_dict = {}
+        my_dict.update(self.__dict__)
+        my_dict.update({'__class__': (str(type(self)).split('.')[-1]).split('\'')[0]})
         my_dict["created_at"] = self.created_at.isoformat()
         my_dict["updated_at"] = self.updated_at.isoformat()
         

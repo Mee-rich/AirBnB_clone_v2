@@ -8,6 +8,7 @@ from models.base_model import BaseModel, Base
 
 class User(BaseModel, Base):
     '''user class object'''
+    # Note storage type = getenv option
     __tablename__ = 'users'
     if storage_type == 'db':
         email = Column(String(128), nullable=False)

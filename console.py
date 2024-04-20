@@ -60,19 +60,25 @@ class HBNBCommand(cmd.Cmd):
                     # Replace Underscores with spaces if needed
                     value = value.replace('_', ' ')
                     # If the value is a float or an integer convert it
-                elif '.' in value:
-                    value = float(value)
-                else:
-                    value = int(value)
+                    if '.' in value:
+                        value = float(value)
+                    else:
+                        value = int(value)
                 kwargs[key] = value
+             
             except ValueError:
                 # Skip invalid arguments
                 print(f"Skipping invalid parameter: {arg}")
         
         # Creating a new instance of the specified class with provided parameters
-        new_instance = globals()[class_name](**kwargs)
-        new_instance.save()
-        print(new_instance.id)
+        try:
+            module = __import__('models.' + class_name.lower(), fromlist=[class_name])
+            class_ = getattr(module, class_name)
+            new_instance = globals()[class_name](**kwargs)
+            new_instance.save()
+            print(new_instance.id)
+        except Exception as e:
+            print("Error:", e)
 
     def do_show(self, arg):
         """Prints the string representation of an instance 
