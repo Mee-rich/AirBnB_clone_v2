@@ -1,81 +1,23 @@
 #!/usr/bin/python3
-""" Console Module """
+"""Program that contains the entry point of the command interpreter
+"""
 import cmd
-import sys
-import re
-import os
-from datetime import datetime
-import uuid
-from models.base_model import BaseModel
 from models import storage
+from models.base_model import BaseModel
 from models.user import User
 from models.place import Place
-from models.state import State
 from models.city import City
+from models.state import State
 from models.amenity import Amenity
 from models.review import Review
 
 
 class HBNBCommand(cmd.Cmd):
-    """Functionality of the HBNB Console defined"""
-    
-    # Determines prompt for interactive/non-interactive modes
-    prompt = "(hbnb) " if sys.__stdin__.isatty() else ''
+    """Class for the command interpreter"""
 
-    classes = {
-            'BaseModel': BaseModel, 'User': User, 'Place': Place,
-            'State': State, 'City': City, 'Amenity': Amenity,
-            'Review': Review
-            }
 
-    dotcmds = ['all', 'count', 'show', 'destroy', 'update']
-    types = {
-            'number_rooms': int, 'number_bathrooms': int,
-            'max_guest': int, 'price_by_night': int,
-            'latitude': float, 'longitude': float
-            }
+    prompt = "(hbnb) "
 
-    def preloop(self):
-        """If isatty is false"""
-        if not sys.__stdin__.isatty():
-            print('(hbnb)')
-
-    def precmd(self, line):
-        """Changes command line for advance command syntax
-            
-            Usage: <class name>.<command>([<id> [<*args> or <**kwargs>]])
-            (Brackets denote optional fields in usage example.)
-        """
-        try:
-            # Split the line into parts based on '.', '(' and ')'
-            parts = line.split('.')
-            class_name, rest = parts[0], parts[1]
-
-            command_parts = rest.split('(')
-            command_name, args_str = command_parts[0], command_parts[1].strip(')')
-
-            # Parse arguments
-            if ',' in args_str:
-                args_list = args_str.split(',')
-                obj_id = args_list[0].strip().strip('\"') # Extract ID
-                args = ','.join(args_list[1:]) # Extract other arguments
-            else:
-                obj_id = args_str.strip().strip('\"')
-                args = ''
-
-            # Format the modified line
-            modified_line = f"{command_name} {class_name} {obj_id} {args}"
-            return modified_line
-        
-        except Exception as e:
-            # Handle exceptions (e.g., SyntaxError, IndexError) if necessary
-            print(f"Error: {e}")
-            return line
-
-    def postcmd(self, stop, line):
-        if not sys.__stdin__.isatty():
-            print('(hbnb) ', end='')
-        return stop
 
     def emptyline(self):
         """Doesn't do anything on ENTER
@@ -101,43 +43,39 @@ class HBNBCommand(cmd.Cmd):
         if not args:
             print("** class name missing **")
             return
-
         class_name = args[0]
-        if class_name not in [cls.__name__ for cls in globals().values()
-                              if isinstance(cls, type)]:
+
+        if class_name not in [cls.__name__ for cls in globals().values() if isinstance(cls, type)]:
             print("** class doesn't exist **")
             return
-
-        params = {}
-        for param in args[1:]:
-            if  '=' in param:
-                key, value = param.split('=')
-                # Remove quotes and replace underscores with spaces for strings
+        
+        # Parse the arguments provided by the user
+        kwargs = {}
+        for arg in args[1:]:
+            try:
+                key, value = arg.split('=')
+                # Remove qoutes from the value
                 if value.startswith('"') and value.endswith('"'):
-                    value = value[1:-1].replace('_', ' ')
-                # Convert to float if contains a dot, otherwise integer
-            elif '.' in value:
-                try:
+                    value = value[1:-1]
+                    # Replace Underscores with spaces if needed
+                    value = value.replace('_', ' ')
+                    # If the value is a float or an integer convert it
+                elif '.' in value:
                     value = float(value)
-                except ValueError:
-                    print(f"Skipping invalid parameter: {param}")
-                    continue
-            else:
-                try:
+                else:
                     value = int(value)
-                except ValueError:
-                    print(f"Skipping invalid parameter: {param}")
-                    continue
-            params[key] = value
-        else:
-            print(f"Skipping invalid parameter: {param}")
-
-        new_instance = globals()[class_name](**params)
+                kwargs[key] = value
+            except ValueError:
+                # Skip invalid arguments
+                print(f"Skipping invalid parameter: {arg}")
+        
+        # Creating a new instance of the specified class with provided parameters
+        new_instance = globals()[class_name](**kwargs)
         new_instance.save()
-        print(new_instance)
+        print(new_instance.id)
 
     def do_show(self, arg):
-        """Prints the string representation of an instance
+        """Prints the string representation of an instance 
         based on the class name and id"""
         args = arg.split()
 
@@ -145,8 +83,7 @@ class HBNBCommand(cmd.Cmd):
             print("** class name missing **")
             return
         class_name = args[0]
-        if args[0] not in [cls.__name__ for cls in globals().values()
-                           if isinstance(cls, type)]:
+        if args[0] not in [cls.__name__ for cls in globals().values() if isinstance(cls,type)]:
             print("** class doesn't exist **")
             return
         if len(args) < 2:
@@ -169,8 +106,7 @@ class HBNBCommand(cmd.Cmd):
             print("** class name missing **")
             return
         class_name = args[0]
-        if class_name not in [cls.__name__ for cls in globals().values()
-                              if isinstance(cls, type)]:
+        if class_name not in [cls.__name__ for cls in globals().values() if isinstance(cls, type)]:
             print("** class doesn't exist **")
             return
         if len(args) < 2:
@@ -184,21 +120,20 @@ class HBNBCommand(cmd.Cmd):
             print("** no instance found **")
 
     def do_all(self, arg):
-        """Prints string representation of all instances or
+        """Prints string representation of all instances or 
         based on class name"""
         args = arg.split()
+        
 
         if not args:
             print([str(obj) for obj in storage.all().values()])
             return
-        class_name = args[0]
-        if class_name not in [cls.__name__ for cls in globals().values()
-                              if isinstance(cls, type)]:
+        class_name = args[0] 
+        if class_name not in [cls.__name__ for cls in globals().values() if isinstance(cls, type)]:
             print("** class doesn't exist **")
             return
-        print([str(obj) for key, obj in storage.all().items()
-               if key.startswith(class_name + ".")])
-
+        print([str(obj) for key, obj in storage.all().items() if key.startswith(class_name + ".")])
+                
     def do_update(self, arg):
         """Updates an instance based on the class name and id by adding or
         updating attribute (save changes into the JSON file)
@@ -208,8 +143,7 @@ class HBNBCommand(cmd.Cmd):
 
         if not arg:
             print("** class name missing **")
-        elif args[0] not in [cls.__name__ for cls in globals().values()
-                             if isinstance(cls, type)]:
+        elif args[0] not in [cls.__name__ for cls in globals().values() if isinstance(cls, type)]:
             print("** class doesn't exist **")
         elif len(args) < 2:
             print("** instance id missing **")
@@ -228,7 +162,7 @@ class HBNBCommand(cmd.Cmd):
 
     def default(self, arg):
         """Default command that handles class cmds: <class name>.func()
-
+    
         <class name>.all(): retrieve all instances of a class
         <class name>.count(): retrieve the number of instances of a class
         <class name>.show(<id>): retrieve an instance based on its ID
@@ -240,10 +174,9 @@ class HBNBCommand(cmd.Cmd):
         Note: d = ast.literal_eval(re.search('({.+})', update_dict).group(0))
         """
         args = arg.split('.', 1)
-
+        
         class_name = args[0]
-        if class_name in [cls.__name__ for cls in globals().values()
-                          if isinstance(cls, type)]:
+        if class_name in [cls.__name__ for cls in globals().values() if isinstance(cls, type)]:
             command = args[1].strip('()')
             commands = {'all': self.do_all, 'count': self.obj_count}
 
@@ -251,23 +184,43 @@ class HBNBCommand(cmd.Cmd):
                 commands[command](class_name)
             elif command.startswith('show'):
                 obj_id = command.split('("', 1)[1].rstrip('")')
-                self.do_show(args[0] + ' ' + obj_id)
+                self.do_show(args[0]+' '+obj_id)
+
+                #f not obj_id:
+                 #  print("** instance id missing **")
+                  # return
+                #or key in storage.all():
+                 #  if obj_id == key.split('.')[1]:
+                       # self.do_show(class_name, obj_id)
+                #if '(' in command and ')' in command:
+                    #obj_id = command.split('(', 1)[1].rstrip(')')
+                   # self.do_show(class_name, obj_id)
+                #else:
 
             elif command.startswith('destroy'):
                 obj_id = command.split('("', 1)[1].rstrip('")')
-                self.do_destroy(args[0] + ' ' + obj_id)
+                self.do_destroy(args[0]+' '+obj_id)
+                #self.do_destroy(args[0]+' '+args[1].split('("')[1].strip('")'))
+                """if '(' in command and ')' in command:
+                    obj_id = command.split('(', 1)[1].rstrip(')')
+                    destroy_in = ["destroy", str(obj_id)]
+                    self.do_destroy(class_name, destroy_in)
+            elif command.startswith('update'):
+                obj_id = command.split('(', 1)[1].rstrip(')')
+            else:
+                print("** Unknown command **")
+"""
 
     @staticmethod
     def obj_count(arg):
         """This prints the number of instances of a class
-
+        
         Usage: <class name>.count(), retrieve the number of instances
         of a class
         """
         if not arg:
             print("** class name missing**")
-        elif arg not in [cls.__name__ for cls in globals().values()
-                         if isinstance(cls, type)]:
+        elif arg not in [cls.__name__ for cls in globals().values() if isinstance(cls, type)]:
             print("** class doesn't exist **")
         else:
             counter = 0
@@ -275,6 +228,7 @@ class HBNBCommand(cmd.Cmd):
                 if arg == key.split('.')[0]:
                     counter += 1
             print(counter)
+        
 
 
 if __name__ == '__main__':

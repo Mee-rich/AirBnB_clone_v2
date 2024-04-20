@@ -9,8 +9,6 @@ from sqlalchemy import Float
 from sqlalchemy import Column
 from models import storage_type
 from sqlalchemy.orm import relationship
-from models.review import Review
-from models.amenity import Amenity
 from models.base_model import BaseModel, Base
 
 if storage_type == 'db':
