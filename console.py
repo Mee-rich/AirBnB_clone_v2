@@ -10,6 +10,7 @@ from models.city import City
 from models.state import State
 from models.amenity import Amenity
 from models.review import Review
+from shlex import split
 
 
 class HBNBCommand(cmd.Cmd):
@@ -17,7 +18,7 @@ class HBNBCommand(cmd.Cmd):
 
 
     prompt = "(hbnb) "
-
+    
 
     def emptyline(self):
         """Doesn't do anything on ENTER
@@ -27,6 +28,7 @@ class HBNBCommand(cmd.Cmd):
     def do_quit(self, line):
         """Exits the program
         """
+        print('')
         return True
 
     def do_EOF(self, line):
@@ -35,9 +37,10 @@ class HBNBCommand(cmd.Cmd):
         print()
         return True
 
+    
     def do_create(self, arg):
-        """Create a new instance of BaseModel and save it to the JSON file
-        """
+        """Create a new instance of BaseModel and save it to the JSON file"""
+        
         args = arg.split()
 
         if not args:
@@ -59,6 +62,7 @@ class HBNBCommand(cmd.Cmd):
                     value = value[1:-1]
                     # Replace Underscores with spaces if needed
                     value = value.replace('_', ' ')
+                else:
                     # If the value is a float or an integer convert it
                     if '.' in value:
                         value = float(value)
@@ -78,7 +82,7 @@ class HBNBCommand(cmd.Cmd):
             new_instance.save()
             print(new_instance.id)
         except Exception as e:
-            print("Error:", e)
+            print("Error:", e)  
 
     def do_show(self, arg):
         """Prints the string representation of an instance 

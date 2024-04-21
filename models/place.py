@@ -31,11 +31,11 @@ class Place(BaseModel, Base):
         number_rooms = Column(Integer, nullable=False, default=0)
         number_bathrooms = Column(Integer, nulllable=False, default=0)
         max_guest = Column(Integer, nullable=False, default=0)
-        price_by_night = Column(Integer, nullable=Flase, default=0)
+        price_by_night = Column(Integer, nullable=False, default=0)
         latitude = Column(Float, nullable=True)
         longitude = Column(Float, nullable=True)
         reviews = relationship('Review', backref='place', cascade='all, delete, delete-orphan')
-        amenities = relationship('Amenity', secondary=place_amenity, viewonly=False, backref='place_amenities')
+        amenities = relationship('Amenity', secondary="place_amenity", viewonly=False, backref='place_amenity')
     else:
         city_id = ""
         name = ""
@@ -66,7 +66,7 @@ class Place(BaseModel, Base):
         def amenities(self):
             ''' returns the list of Amenity instances
                 based on the attribute amenity_ids that
-                contains all Amenoity.id linked to the Place
+                contains all Amenity.id linked to the Place
             '''
             from models import storage
             amens_all = storage.all(Amenity)

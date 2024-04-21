@@ -3,7 +3,11 @@
 
 import json
 import os
-from importlib import import_module
+from models.base_model import BaseModel
+from models.city import City
+from models.amenity import Amenity
+from models.review import Review
+from models.user import User
 
 class FileStorage():
     """File storage module"""
@@ -24,17 +28,6 @@ class FileStorage():
     __file_path = "file.json"
     __objects = {}
 
-    def __init__(self):
-        """Initializes a FileStorage instance"""
-        self.model_classes = {
-                'BaseModel': import_module('models.base_model').BaseModel,
-                'User': import_module('models.user').User,
-                'State': import_module('models.state').State,
-                'City': import_module('models.city').City,
-                'Amenity': import_module('models.amenity').Amenity,
-                'Place': import_module('models.place').Place,
-                'Review': import_module('models.review').Review
-            }
 
     def all(self, cls=None):
         """returns all objects or ojects of a specified class"""
@@ -46,6 +39,7 @@ class FileStorage():
                 if type(value) is cls:
                     filtered_dict[key] = value
             return filtered_dict
+        return self.__objects
 
     def new(self, obj):
         """Adds a new object to storage dictionary"""
@@ -77,16 +71,25 @@ class FileStorage():
         try:
             if os.path.isfile(file):
                 with open(file, 'r', encoding="utf-8") as f:
-                    content = f.read()
-                    formatted_content = json.loads(content)
+                    content = json.load(f)
 
-                    for value in formatted_content.values():
+                    for value in content.values():
                         class_name = value.get("__class__")
                         if class_name and is_valid_class(class_name):
-                            self.new(obj)
+
+                            obj_attrs = {k: v for k, v in value.items() if k != "__class__"}
+
+                            # Create new instance of the class with extracted attributes
+                            obj_instance = globals()[class_name](**obj_attrs)
+
+                            # Add the new instance to your storage mechanism
+                            self.new(obj_instance)
                         else:
                             # Log or handle invalid class names
                             pass
+                    print("Data reloaded successful.")
+            else:
+                print("JSON file not found.")
         except FileNotFoundError as e:
             print(f"Error loading data from file: {e}")
 
@@ -104,4 +107,8 @@ class FileStorage():
         if obj is not None:
             key = "{}.{}".format(type(obj).__name__, obj.id)
             del FileStorage.__objects[key]
+
+    def close(self):
+        """Call the reload method"""
+        self.reload()
 
